@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JGM Wholesale — Invoicing</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:15px;color:#1a1a1a;background:#f4f4f0}
+input,select,textarea{font-family:inherit;font-size:14px;color:#1a1a1a;background:#fff;border:1px solid #ccc;border-radius:6px;padding:7px 10px;width:100%;outline:none}
+input:focus,select:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,0.1)}
+button{font-family:inherit;font-size:14px;cursor:pointer;border-radius:6px;padding:7px 14px;border:1px solid #ccc;background:#fff;color:#1a1a1a;transition:background 0.15s}
+button:hover{background:#f0f0f0}
+button:active{transform:scale(0.98)}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover{background:#0C447C;color:#fff}
+.btn-danger{background:transparent;color:#A32D2D;border-color:#A32D2D}
+.btn-danger:hover{background:#FCEBEB}
+.btn-success{background:#3B6D11;color:#fff;border-color:#3B6D11}
+.btn-success:hover{background:#27500A}
+.btn-sm{padding:4px 10px;font-size:12px}
+#wrapper{max-width:980px;margin:0 auto;padding:1.5rem 1rem}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.label{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.section-title{font-size:16px;font-weight:600;margin-bottom:1rem;color:#1a1a1a}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mt{margin-top:1rem}
+.msg-ok{color:#27500A;font-size:13px;margin-top:8px}
+.msg-err{color:#A32D2D;font-size:13px;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-weight:600;color:#555;border-bottom:1px solid #e0e0e0;padding:8px 6px;text-align:left;white-space:nowrap}
+td{padding:7px 6px;border-bottom:1px solid #e8e8e8;color:#1a1a1a;vertical-align:middle}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600}
+.b-vat{background:#E6F1FB;color:#0C447C}
+.b-exempt{background:#EAF3DE;color:#27500A}
+.b-low{background:#FCEBEB;color:#A32D2D}
+.b-ok{background:#EAF3DE;color:#27500A}
+.b-warn{background:#FAEEDA;color:#633806}
+.nav{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid #ddd;padding-bottom:0.75rem;flex-wrap:wrap}
+.nav-btn{background:transparent;border:none;padding:7px 14px;border-radius:6px;font-size:13px;color:#666;font-weight:500}
+.nav-btn.active{background:#e8f0f8;color:#185FA5;font-weight:600}
+.nav-btn:hover{background:#f0f0f0}
+.pin-screen{min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#fff;border-radius:12px;padding:2rem}
+.pin-dots{display:flex;gap:12px;margin:0.5rem 0}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid #aaa;background:transparent;transition:background 0.15s}
+.pin-dot.filled{background:#185FA5;border-color:#185FA5}
+.pin-pad{display:grid;grid-template-columns:repeat(3,64px);gap:10px;margin-top:0.5rem}
+.pin-key{width:64px;height:64px;font-size:20px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #ccc;background:#fff;cursor:pointer;color:#1a1a1a}
+.pin-key:hover{background:#f0f0f0}
+.line-item{display:grid;grid-template-columns:2.2fr 70px 95px 80px 34px;gap:6px;align-items:center;margin-bottom:7px}
+.totals-box{background:#f8f8f6;border-radius:8px;padding:1rem;margin-top:1rem;border:1px solid #e8e8e8}
+.total-row{display:flex;justify-content:space-between;font-size:14px;padding:3px 0;color:#555}
+.total-row.grand{font-size:16px;font-weight:600;color:#1a1a1a;border-top:1px solid #ccc;margin-top:8px;padding-top:8px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem}
+.stat-card{background:#f8f8f6;border-radius:8px;padding:0.85rem 1rem;border:1px solid #e8e8e8}
+.stat-label{font-size:12px;color:#666;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600}
+.tab{display:none}
+.tab.active{display:block}
+.empty{text-align:center;padding:2.5rem;color:#888;font-size:14px}
+.search-row{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+.search-row input{max-width:280px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.logo{font-size:18px;font-weight:700;color:#185FA5}
+@media(max-width:600px){
+  .grid2,.grid3,.stat-grid{grid-template-columns:1fr}
+  .line-item{grid-template-columns:1fr 60px 80px 70px 30px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="wrapper">
+
+<!-- PIN SCREEN -->
+<div id="pin-screen" class="pin-screen">
+  <div style="font-size:26px;font-weight:700;color:#185FA5">JGM Wholesale</div>
+  <div style="font-size:14px;color:#666">Invoicing System — Enter PIN</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+  </div>
+  <div id="pin-error" style="color:#A32D2D;font-size:13px;display:none">Incorrect PIN. Try again.</div>
+  <div class="pin-pad" id="pin-pad">
+    <div class="pin-key" data-k="1">1</div><div class="pin-key" data-k="2">2</div><div class="pin-key" data-k="3">3</div>
+    <div class="pin-key" data-k="4">4</div><div class="pin-key" data-k="5">5</div><div class="pin-key" data-k="6">6</div>
+    <div class="pin-key" data-k="7">7</div><div class="pin-key" data-k="8">8</div><div class="pin-key" data-k="9">9</div>
+    <div class="pin-key" data-k="clear" style="font-size:12px">CLR</div>
+    <div class="pin-key" data-k="0">0</div>
+    <div class="pin-key" data-k="del" style="font-size:12px">DEL</div>
+  </div>
+  <div style="font-size:12px;color:#999">Default PIN: 1234 &nbsp;|&nbsp; Change in Settings</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" style="display:none">
+  <div class="topbar">
+    <div class="logo">JGM Wholesale</div>
+    <button class="btn-sm" onclick="logout()">Lock</button>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('invoice',this)">New Invoice</button>
+    <button class="nav-btn" onclick="showTab('records',this)">Sales History</button>
+    <button class="nav-btn" onclick="showTab('customers',this)">Customers</button>
+    <button class="nav-btn" onclick="showTab('inventory',this)">Inventory</button>
+    <button class="nav-btn" onclick="showTab('products',this)">Products</button>
+    <button class="nav-btn" onclick="showTab('settings',this)">Settings</button>
+  </div>
+
+  <!-- NEW INVOICE -->
+  <div id="tab-invoice" class="tab active">
+    <div class="card">
+      <div class="section-title">Invoice details</div>
+      <div class="grid3">
+        <div><label class="label">Invoice no.</label><input type="text" id="inv-num"/></div>
+        <div><label class="label">Invoice date</label><input type="date" id="inv-date"/></div>
+        <div></div>
+      </div>
+      <div class="grid2 mt">
+        <div>
+          <label class="label">Select existing customer</label>
+          <select id="cust-select" onchange="fillCustomer(this.value)">
+            <option value="">-- Select customer --</option>
+          </select>
+        </div>
+        <div><label class="label">Contact</label><input type="text" id="cust-contact" placeholder="Phone / email"/></div>
+      </div>
+      <div class="grid2 mt">
+        <div><label class="label">Customer name (if new)</label><input type="text" id="cust-name" placeholder="New customer name"/></div>
+        <div><label class="label">Address</label><input type="text" id="cust-addr" placeholder="Address"/></div>
+      </div>
+      <div style="margin-top:8px"><label style="font-size:12px;color:#666;display:flex;align-items:center;gap:6px"><input type="checkbox" id="save-cust" style="width:auto"/>Save as new customer</label></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Line items</div>
+      <div style="display:grid;grid-template-columns:2.2fr 70px 95px 80px 34px;gap:6px;margin-bottom:6px;padding:0 2px">
+        <span style="font-size:12px;color:#666">Product</span>
+        <span style="font-size:12px;color:#666">Qty</span>
+        <span style="font-size:12px;color:#666">Unit price (£)</span>
+        <span style="font-size:12px;color:#666">Line total</span>
+        <span></span>
+      </div>
+      <div id="line-items"></div>
+      <button class="mt" onclick="addLine()">+ Add line</button>
+      <div class="totals-box mt">
+        <div class="total-row"><span>Subtotal (excl. VAT)</span><span id="t-sub">£0.00</span></div>
+        <div class="total-row"><span>VAT</span><span id="t-vat">£0.00</span></div>
+        <div class="total-row grand"><span>Total</span><span id="t-total">£0.00</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0.5rem">
+      <button class="btn-primary" onclick="saveInvoice()">Save invoice</button>
+      <button onclick="printInvoice()">Print / PDF</button>
+      <button onclick="clearForm()">Clear</button>
+    </div>
+    <div id="inv-msg" style="display:none;font-size:13px"></div>
+  </div>
+
+  <!-- SALES HISTORY -->
+  <div id="tab-records" class="tab">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+        <div class="section-title" style="margin:0">Sales history</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="rec-search" placeholder="Search customer / invoice" style="width:220px" oninput="renderRecords()"/>
+          <button class="btn-success btn-sm" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+      <div class="stat-grid" id="sales-stats"></div>
+      <div id="records-body"></div>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div id="tab-customers" class="tab">
+    <div class="card">
+      <div class="section-title">Add customer</div>
+      <div class="grid3">
+        <div><label class="label">Name</label><input type="text" id="nc-name" placeholder="Business name"/></div>
+        <div><label class="label">Contact</label><input type="text" id="nc-contact" placeholder="Phone / email"/></div>
+        <div><label class="label">Address</label><input type="text" id="nc-addr" placeholder="Address"/></div>
+      </div>
+      <div class="mt" style="display:flex;gap:8px;align-items:center">
+        <button class="btn-primary" onclick="addCustomer()">Add customer</button>
+        <span id="cust-msg" style="display:none;font-size:13px"></span>
+        <span id="cust-err" style="display:none;font-size:13px;color:#A32D2D"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="search-row">
+        <input type="text" id="cust-search" placeholder="Search customers..." oninput="renderCustomers()"/>
+        <button class="btn-success btn-sm" onclick="exportCustomersCSV()">Export CSV</button>
+      </div>
+      <div id="cust-table"></div>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div id="tab-inventory" class="tab">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div class="section-title" style="margin:0">Stock levels</div>
+        <button class="btn-success btn-sm" onclick="exportInventoryCSV()">Export CSV</button>
+      </div>
+      <div id="inv-stats" style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap"></div>
+      <table>
+        <thead><tr><th>Product</th><th>VAT</th><th>Unit price</th><th>Stock</th><th>Status</th><th>Adjust stock</th></tr></thead>
+        <tbody id="inv-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div id="tab-products" class="tab">
+    <div class="card">
+      <div class="section-title">Add product</div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 90px 90px auto;gap:8px;align-items:end;flex-wrap:wrap">
+        <div><label class="label">Product name</label><input type="text" id="prod-name" placeholder="e.g. Coca-Cola 500ml x24"/></div>
+        <div><label class="label">Unit price (£)</label><input type="number" id="prod-price" step="0.01" min="0" placeholder="0.00"/></div>
+        <div><label class="label">VAT</label><select id="prod-vat"><option value="20">20%</option><option value="0">0% exempt</option></select></div>
+        <div><label class="label">Opening stock</label><input type="number" id="prod-stock" min="0" step="1" placeholder="0"/></div>
+        <div style="padding-bottom:1px"><button class="btn-primary" onclick="addProduct()">Add</button></div>
+      </div>
+      <div id="prod-err" style="display:none;font-size:13px;color:#A32D2D;margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <div id="prod-table-wrap"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="tab-settings" class="tab">
+    <div class="card">
+      <div class="section-title">Company details (shown on invoices)</div>
+      <div class="grid2">
+        <div><label class="label">Company name</label><input type="text" id="set-company"/></div>
+        <div><label class="label">VAT number</label><input type="text" id="set-vat" placeholder="GB000000000"/></div>
+      </div>
+      <div class="mt"><label class="label">Address</label><input type="text" id="set-addr"/></div>
+      <div class="grid2 mt">
+        <div><label class="label">Phone</label><input type="text" id="set-phone"/></div>
+        <div><label class="label">Email</label><input type="text" id="set-email"/></div>
+      </div>
+      <div class="mt"><label class="label">Invoice number prefix (e.g. JGM-)</label><input type="text" id="set-prefix"/></div>
+      <div class="mt"><label class="label">Low stock alert threshold</label><input type="number" id="set-lowstock" min="0" step="1" style="width:120px"/></div>
+      <button class="btn-primary mt" onclick="saveSettings()">Save settings</button>
+      <div id="set-msg" style="display:none;font-size:13px;margin-top:8px;color:#27500A"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Change PIN</div>
+      <div class="grid3">
+        <div><label class="label">Current PIN</label><input type="password" id="pin-cur" maxlength="4"/></div>
+        <div><label class="label">New PIN</label><input type="password" id="pin-new" maxlength="4"/></div>
+        <div><label class="label">Confirm new PIN</label><input type="password" id="pin-conf" maxlength="4"/></div>
+      </div>
+      <div id="pin-err" style="display:none;font-size:13px;color:#A32D2D;margin-top:6px"></div>
+      <button class="btn-primary mt" onclick="changePin()">Change PIN</button>
+      <div id="pin-ok" style="display:none;font-size:13px;margin-top:8px;color:#27500A"></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Data management</div>
+      <p style="font-size:13px;color:#666;margin-bottom:1rem">All data is stored in this browser's local storage. Clearing browser data will erase invoices and settings. Use CSV exports regularly to back up your data.</p>
+      <button class="btn-danger" onclick="clearAllData()">Clear all app data</button>
+    </div>
+  </div>
+</div><!-- /main-app -->
+
+</div><!-- /wrapper -->
+
+<script>
+const DEF={
+  pin:'1234',invoices:[],customers:[],lines:[],
+  products:[
+    {id:1,name:'Coca-Cola 500ml x24',price:12.50,vat:20,stock:50},
+    {id:2,name:'Pepsi 500ml x24',price:11.99,vat:20,stock:40},
+    {id:3,name:'Red Bull 250ml x24',price:22.00,vat:20,stock:30},
+    {id:4,name:'Walkers Crisps Variety x32',price:9.50,vat:20,stock:25},
+    {id:5,name:'Basmati Rice 5kg',price:8.99,vat:0,stock:60},
+    {id:6,name:'Plain Flour 1.5kg',price:1.49,vat:0,stock:80},
+    {id:7,name:'Digestive Biscuits x24',price:14.40,vat:0,stock:20},
+    {id:8,name:'Fairy Liquid 900ml x6',price:13.20,vat:20,stock:35},
+    {id:9,name:'Nescafe Gold 200g',price:6.50,vat:20,stock:45},
+    {id:10,name:'Tetley Tea Bags 240',price:5.99,vat:0,stock:55},
+  ],
+  settings:{company:'JGM Wholesale',vatNo:'',address:'',phone:'',email:'',prefix:'JGM-',lowStock:10},
+  nextInv:1001,prodSeq:11,custSeq:1
+};
+
+let S=JSON.parse(JSON.stringify(DEF));
+try{const r=localStorage.getItem('jgm_v3');if(r)Object.assign(S,JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem('jgm_v3',JSON.stringify(S));}catch(e){}}
+
+// PIN
+let pinEntry='';
+document.getElementById('pin-pad').addEventListener('click',e=>{
+  const k=e.target.closest('.pin-key');if(!k)return;
+  const v=k.dataset.k;
+  if(v==='clear'){pinEntry='';upDots();}
+  else if(v==='del'){pinEntry=pinEntry.slice(0,-1);upDots();}
+  else if(pinEntry.length<4){pinEntry+=v;upDots();if(pinEntry.length===4)chkPin();}
+});
+function upDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinEntry.length);}
+function chkPin(){
+  setTimeout(()=>{
+    if(pinEntry===S.pin){
+      document.getElementById('pin-error').style.display='none';
+      document.getElementById('pin-screen').style.display='none';
+      document.getElementById('main-app').style.display='block';
+      initApp();
+    }else{document.getElementById('pin-error').style.display='block';pinEntry='';upDots();}
+  },200);
+}
+function logout(){
+  pinEntry='';upDots();
+  document.getElementById('pin-screen').style.display='flex';
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('pin-error').style.display='none';
+}
+
+function showTab(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(name==='records')renderRecords();
+  if(name==='customers')renderCustomers();
+  if(name==='inventory')renderInventory();
+  if(name==='products')renderProducts();
+  if(name==='settings')loadSettings();
+}
+
+function initApp(){
+  document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('inv-num').value=S.settings.prefix+S.nextInv;
+  refreshCustSelect();
+  if(!S.lines||!S.lines.length)S.lines=[newLine()];
+  renderLines();
+}
+
+function newLine(){return{productId:'',qty:1,unitPrice:0,vat:20};}
+
+function refreshCustSelect(){
+  const sel=document.getElementById('cust-select');
+  sel.innerHTML='<option value="">-- Select customer --</option>'+
+    S.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function fillCustomer(id){
+  const c=S.customers.find(x=>x.id==id);if(!c)return;
+  document.getElementById('cust-name').value=c.name;
+  document.getElementById('cust-contact').value=c.contact||'';
+  document.getElementById('cust-addr').value=c.address||'';
+}
+
+// LINE ITEMS
+function addLine(){S.lines.push(newLine());renderLines();}
+function removeLine(i){S.lines.splice(i,1);if(!S.lines.length)S.lines.push(newLine());renderLines();}
+
+function renderLines(){
+  const c=document.getElementById('line-items');
+  const opts=S.products.map(p=>`<option value="${p.id}">${p.name} (stock: ${p.stock})</option>`).join('');
+  c.innerHTML='';
+  S.lines.forEach((ln,i)=>{
+    const div=document.createElement('div');
+    div.className='line-item';
+    const sel=`<select onchange="selectProd(${i},this.value)"><option value="">-- Select product --</option>${opts}</select>`;
+    div.innerHTML=`${sel}
+      <input type="number" min="1" step="1" value="${ln.qty}" onchange="updLine(${i},'qty',this.value)"/>
+      <input type="number" min="0" step="0.01" value="${ln.unitPrice.toFixed(2)}" onchange="updLine(${i},'unitPrice',this.value)"/>
+      <span style="font-size:13px;color:#555">£${lineTotal(ln)}</span>
+      <button class="btn-danger btn-sm" onclick="removeLine(${i})">&times;</button>`;
+    c.appendChild(div);
+    div.querySelector('select').value=ln.productId||'';
+  });
+  calcTotals();
+}
+
+function selectProd(i,pid){
+  const p=S.products.find(x=>x.id==pid);
+  if(p){S.lines[i].productId=pid;S.lines[i].unitPrice=p.price;S.lines[i].vat=p.vat;}
+  else S.lines[i].productId='';
+  renderLines();
+}
+function updLine(i,f,v){
+  if(f==='qty')S.lines[i].qty=Math.max(1,parseInt(v)||1);
+  if(f==='unitPrice')S.lines[i].unitPrice=parseFloat(v)||0;
+  renderLines();
+}
+function lineTotal(ln){const net=ln.qty*ln.unitPrice;return(net+net*(ln.vat/100)).toFixed(2);}
+function calcTotals(){
+  let sub=0,vat=0;
+  S.lines.forEach(ln=>{const net=ln.qty*ln.unitPrice;sub+=net;vat+=net*(ln.vat/100);});
+  document.getElementById('t-sub').textContent='£'+sub.toFixed(2);
+  document.getElementById('t-vat').textContent='£'+vat.toFixed(2);
+  document.getElementById('t-total').textContent='£'+(sub+vat).toFixed(2);
+}
+
+function saveInvoice(){
+  const num=document.getElementById('inv-num').value.trim();
+  const date=document.getElementById('inv-date').value;
+  const custName=document.getElementById('cust-name').value.trim();
+  if(!num||!date||!custName){showMsg('inv-msg','Please fill in invoice number, date, and customer name.','err');return;}
+  const validLines=S.lines.filter(l=>l.productId);
+  if(!validLines.length){showMsg('inv-msg','Please add at least one product.','err');return;}
+  validLines.forEach(ln=>{const p=S.products.find(x=>x.id==ln.productId);if(p)p.stock=Math.max(0,p.stock-ln.qty);});
+  if(document.getElementById('save-cust').checked&&custName){
+    if(!S.customers.find(c=>c.name.toLowerCase()===custName.toLowerCase())){
+      S.customers.push({id:S.custSeq++,name:custName,contact:document.getElementById('cust-contact').value,address:document.getElementById('cust-addr').value});
+      refreshCustSelect();
+    }
+  }
+  let sub=0,vatAmt=0;
+  validLines.forEach(ln=>{const net=ln.qty*ln.unitPrice;sub+=net;vatAmt+=net*(ln.vat/100);});
+  S.invoices.unshift({id:Date.now(),num,date,customer:custName,
+    contact:document.getElementById('cust-contact').value,
+    address:document.getElementById('cust-addr').value,
+    lines:JSON.parse(JSON.stringify(validLines)),
+    sub:sub.toFixed(2),vat:vatAmt.toFixed(2),total:(sub+vatAmt).toFixed(2)
+  });
+  S.nextInv++;save();
+  showMsg('inv-msg','Invoice saved successfully.','ok');
+  clearForm();
+}
+
+function clearForm(){
+  document.getElementById('cust-select').value='';
+  document.getElementById('cust-name').value='';
+  document.getElementById('cust-contact').value='';
+  document.getElementById('cust-addr').value='';
+  document.getElementById('save-cust').checked=false;
+  document.getElementById('inv-num').value=S.settings.prefix+S.nextInv;
+  document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
+  S.lines=[newLine()];renderLines();
+}
+
+// PRINT
+function buildPrintHTML(s,num,date,cust,addr,contact,rows,sub,vatAmt){
+  return`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${num}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:2rem;max-width:800px;margin:0 auto}
+  .hd{display:flex;justify-content:space-between;border-bottom:2.5px solid #185FA5;padding-bottom:1rem;margin-bottom:1.5rem}
+  .co{font-size:22px;font-weight:700;color:#185FA5}.it{font-size:26px;color:#185FA5;font-weight:700}
+  table{width:100%;border-collapse:collapse;margin:1.5rem 0}
+  th{background:#185FA5;color:#fff;padding:9px;font-size:12px;text-align:left}
+  td{padding:8px;border-bottom:1px solid #eee;font-size:12px}
+  .tot{float:right;width:290px}
+  .tr{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:#444}
+  .grand{font-size:16px;font-weight:700;color:#185FA5;border-top:2px solid #185FA5;padding-top:7px;margin-top:5px}
+  .ft{margin-top:4rem;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:1rem}
+  @media print{body{padding:0}}
+  </style></head><body>
+  <div class="hd">
+    <div><div class="co">${s.company||'JGM Wholesale'}</div>
+    <div style="font-size:12px;color:#555;margin-top:4px">${s.address||''}</div>
+    <div style="font-size:12px;color:#555">${[s.phone,s.email].filter(Boolean).join(' &nbsp; ')}</div>
+    ${s.vatNo?`<div style="font-size:12px;color:#555">VAT No: ${s.vatNo}</div>`:''}</div>
+    <div style="text-align:right">
+      <div class="it">INVOICE</div>
+      <div style="font-size:13px;color:#555;margin-top:6px"><strong>No:</strong> ${num}</div>
+      <div style="font-size:13px;color:#555"><strong>Date:</strong> ${date}</div>
+    </div>
+  </div>
+  <div><strong>Bill to:</strong><br/>${cust}<br/>${addr}<br/>${contact}</div>
+  <table><thead><tr><th>Product</th><th>Qty</th><th>Unit price</th><th>VAT</th><th>Line total</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="tot">
+    <div class="tr"><span>Subtotal (excl. VAT)</span><span>£${sub.toFixed(2)}</span></div>
+    <div class="tr"><span>VAT</span><span>£${vatAmt.toFixed(2)}</span></div>
+    <div class="tr grand"><span>Total</span><span>£${(sub+vatAmt).toFixed(2)}</span></div>
+  </div><div style="clear:both"></div>
+  <div class="ft">Thank you for your business — ${s.company||'JGM Wholesale'}</div>
+  </body></html>`;
+}
+
+function printInvoice(){
+  const s=S.settings;
+  const num=document.getElementById('inv-num').value;
+  const date=document.getElementById('inv-date').value;
+  const cust=document.getElementById('cust-name').value||'';
+  const addr=document.getElementById('cust-addr').value||'';
+  const contact=document.getElementById('cust-contact').value||'';
+  let rows='',sub=0,vatAmt=0;
+  S.lines.forEach(ln=>{
+    const p=S.products.find(x=>x.id==ln.productId);if(!p)return;
+    const net=ln.qty*ln.unitPrice;sub+=net;vatAmt+=net*(ln.vat/100);
+    rows+=`<tr><td>${p.name}</td><td>${ln.qty}</td><td>£${ln.unitPrice.toFixed(2)}</td><td>${ln.vat}%</td><td>£${(net+net*(ln.vat/100)).toFixed(2)}</td></tr>`;
+  });
+  const w=window.open('','_blank');
+  w.document.write(buildPrintHTML(s,num,date,cust,addr,contact,rows,sub,vatAmt));
+  w.document.close();w.onload=()=>w.print();
+}
+
+function reprintInvoice(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  const s=S.settings;let rows='';
+  const sub=parseFloat(inv.sub),vatAmt=parseFloat(inv.vat);
+  inv.lines.forEach(ln=>{
+    const p=S.products.find(x=>x.id==ln.productId);
+    const nm=p?p.name:'Unknown product';
+    const net=ln.qty*ln.unitPrice;
+    rows+=`<tr><td>${nm}</td><td>${ln.qty}</td><td>£${ln.unitPrice.toFixed(2)}</td><td>${ln.vat}%</td><td>£${(net+net*(ln.vat/100)).toFixed(2)}</td></tr>`;
+  });
+  const w=window.open('','_blank');
+  w.document.write(buildPrintHTML(s,inv.num,inv.date,inv.customer,inv.address||'',inv.contact||'',rows,sub,vatAmt));
+  w.document.close();w.onload=()=>w.print();
+}
+
+// SALES HISTORY
+function renderRecords(){
+  const q=(document.getElementById('rec-search')?.value||'').toLowerCase();
+  const list=S.invoices.filter(i=>i.customer.toLowerCase().includes(q)||i.num.toLowerCase().includes(q));
+  const totalRev=S.invoices.reduce((a,i)=>a+parseFloat(i.total),0);
+  const totalVat=S.invoices.reduce((a,i)=>a+parseFloat(i.vat),0);
+  document.getElementById('sales-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total invoices</div><div class="stat-val">${S.invoices.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total revenue</div><div class="stat-val">£${totalRev.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="stat-label">VAT collected</div><div class="stat-val">£${totalVat.toFixed(0)}</div></div>
+    <div class="stat-card"><div class="stat-label">Customers</div><div class="stat-val">${S.customers.length}</div></div>`;
+  const el=document.getElementById('records-body');
+  if(!list.length){el.innerHTML='<div class="empty">No invoices found.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Invoice no.</th><th>Date</th><th>Customer</th><th>Subtotal</th><th>VAT</th><th>Total</th><th></th></tr></thead>
+  <tbody>${list.map(inv=>`<tr>
+    <td>${inv.num}</td><td>${inv.date}</td><td>${inv.customer}</td>
+    <td>£${inv.sub}</td><td>£${inv.vat}</td><td style="font-weight:600">£${inv.total}</td>
+    <td style="display:flex;gap:5px;white-space:nowrap">
+      <button class="btn-sm" onclick="reprintInvoice(${inv.id})">Print</button>
+      <button class="btn-sm btn-danger" onclick="delInv(${inv.id})">Del</button>
+    </td></tr>`).join('')}</tbody></table>`;
+}
+
+function delInv(id){if(!confirm('Delete this invoice?'))return;S.invoices=S.invoices.filter(i=>i.id!==id);save();renderRecords();}
+
+function exportCSV(){
+  const rows=[['Invoice No','Date','Customer','Contact','Address','Subtotal (£)','VAT (£)','Total (£)']];
+  S.invoices.forEach(i=>rows.push([i.num,i.date,i.customer,i.contact||'',i.address||'',i.sub,i.vat,i.total]));
+  dlCSV(rows,'JGM_Sales_History.csv');
+}
+function exportCustomersCSV(){
+  const rows=[['Name','Contact','Address']];
+  S.customers.forEach(c=>rows.push([c.name,c.contact||'',c.address||'']));
+  dlCSV(rows,'JGM_Customers.csv');
+}
+function exportInventoryCSV(){
+  const rows=[['Product','VAT %','Unit Price (£)','Stock']];
+  S.products.forEach(p=>rows.push([p.name,p.vat,p.price.toFixed(2),p.stock]));
+  dlCSV(rows,'JGM_Inventory.csv');
+}
+function dlCSV(rows,filename){
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=filename;a.click();
+}
+
+// CUSTOMERS
+function addCustomer(){
+  const name=document.getElementById('nc-name').value.trim();
+  const contact=document.getElementById('nc-contact').value.trim();
+  const addr=document.getElementById('nc-addr').value.trim();
+  if(!name){showEl('cust-err','Name is required.');return;}
+  if(S.customers.find(c=>c.name.toLowerCase()===name.toLowerCase())){showEl('cust-err','Customer already exists.');return;}
+  document.getElementById('cust-err').style.display='none';
+  S.customers.push({id:S.custSeq++,name,contact,address:addr});
+  save();refreshCustSelect();
+  document.getElementById('nc-name').value='';document.getElementById('nc-contact').value='';document.getElementById('nc-addr').value='';
+  showMsg('cust-msg','Customer added.','ok');renderCustomers();
+}
+function delCustomer(id){
+  if(!confirm('Remove this customer?'))return;
+  S.customers=S.customers.filter(c=>c.id!==id);save();refreshCustSelect();renderCustomers();
+}
+function renderCustomers(){
+  const q=(document.getElementById('cust-search')?.value||'').toLowerCase();
+  const list=S.customers.filter(c=>c.name.toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q));
+  const el=document.getElementById('cust-table');
+  if(!list.length){el.innerHTML='<div class="empty">No customers yet.</div>';return;}
+  const invoiceCount=name=>S.invoices.filter(i=>i.customer===name).length;
+  el.innerHTML=`<table><thead><tr><th>Name</th><th>Contact</th><th>Address</th><th>Invoices</th><th></th></tr></thead>
+  <tbody>${list.map(c=>`<tr><td>${c.name}</td><td>${c.contact||'—'}</td><td>${c.address||'—'}</td>
+  <td>${invoiceCount(c.name)}</td>
+  <td><button class="btn-sm btn-danger" onclick="delCustomer(${c.id})">Remove</button></td></tr>`).join('')}</tbody></table>`;
+}
+
+// INVENTORY
+function renderInventory(){
+  const low=S.settings.lowStock||10;
+  const lowCount=S.products.filter(p=>p.stock<=low).length;
+  document.getElementById('inv-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total products</div><div class="stat-val">${S.products.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Low stock alerts</div><div class="stat-val" style="color:${lowCount>0?'#A32D2D':'inherit'}">${lowCount}</div></div>`;
+  document.getElementById('inv-table').innerHTML=S.products.map(p=>{
+    const status=p.stock===0?'<span class="badge b-low">Out of stock</span>':
+      p.stock<=low?`<span class="badge b-warn">Low (${p.stock})</span>`:
+      '<span class="badge b-ok">In stock</span>';
+    return`<tr>
+      <td>${p.name}</td>
+      <td><span class="badge ${p.vat===20?'b-vat':'b-exempt'}">${p.vat===20?'20%':'0%'}</span></td>
+      <td>£${p.price.toFixed(2)}</td>
+      <td style="font-weight:600">${p.stock}</td>
+      <td>${status}</td>
+      <td style="display:flex;gap:5px;align-items:center">
+        <input type="number" step="1" value="${p.stock}" style="width:70px;padding:4px 6px;font-size:12px" id="stk-${p.id}"/>
+        <button class="btn-sm" onclick="updateStock(${p.id})">Set</button>
+        <button class="btn-sm" onclick="addStock(${p.id},10)">+10</button>
+      </td></tr>`;
+  }).join('');
+}
+function updateStock(id){const p=S.products.find(x=>x.id===id);if(!p)return;const v=parseInt(document.getElementById('stk-'+id).value);if(isNaN(v)||v<0)return;p.stock=v;save();renderInventory();}
+function addStock(id,qty){const p=S.products.find(x=>x.id===id);if(!p)return;p.stock+=qty;save();renderInventory();}
+
+// PRODUCTS
+function addProduct(){
+  const name=document.getElementById('prod-name').value.trim();
+  const price=parseFloat(document.getElementById('prod-price').value)||0;
+  const vat=parseInt(document.getElementById('prod-vat').value);
+  const stock=parseInt(document.getElementById('prod-stock').value)||0;
+  const err=document.getElementById('prod-err');
+  if(!name){err.textContent='Product name required.';err.style.display='block';return;}
+  if(S.products.find(p=>p.name.toLowerCase()===name.toLowerCase())){err.textContent='Product already exists.';err.style.display='block';return;}
+  err.style.display='none';
+  S.products.push({id:S.prodSeq++,name,price,vat,stock});
+  save();
+  document.getElementById('prod-name').value='';document.getElementById('prod-price').value='';document.getElementById('prod-stock').value='';
+  renderProducts();
+}
+function delProduct(id){if(!confirm('Remove this product?'))return;S.products=S.products.filter(p=>p.id!==id);save();renderProducts();}
+function renderProducts(){
+  document.getElementById('prod-table-wrap').innerHTML=`<table>
+  <thead><tr><th>Product</th><th>Price</th><th>VAT</th><th>Stock</th><th></th></tr></thead>
+  <tbody>${S.products.map(p=>`<tr>
+    <td>${p.name}</td><td>£${p.price.toFixed(2)}</td>
+    <td><span class="badge ${p.vat===20?'b-vat':'b-exempt'}">${p.vat===20?'20%':'0% exempt'}</span></td>
+    <td>${p.stock}</td>
+    <td><button class="btn-sm btn-danger" onclick="delProduct(${p.id})">Remove</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// SETTINGS
+function loadSettings(){
+  const s=S.settings;
+  document.getElementById('set-company').value=s.company||'';
+  document.getElementById('set-vat').value=s.vatNo||'';
+  document.getElementById('set-addr').value=s.address||'';
+  document.getElementById('set-phone').value=s.phone||'';
+  document.getElementById('set-email').value=s.email||'';
+  document.getElementById('set-prefix').value=s.prefix||'JGM-';
+  document.getElementById('set-lowstock').value=s.lowStock||10;
+}
+function saveSettings(){
+  const s=S.settings;
+  s.company=document.getElementById('set-company').value.trim();
+  s.vatNo=document.getElementById('set-vat').value.trim();
+  s.address=document.getElementById('set-addr').value.trim();
+  s.phone=document.getElementById('set-phone').value.trim();
+  s.email=document.getElementById('set-email').value.trim();
+  s.prefix=document.getElementById('set-prefix').value.trim();
+  s.lowStock=parseInt(document.getElementById('set-lowstock').value)||10;
+  save();showMsg('set-msg','Settings saved.','ok');
+}
+function changePin(){
+  const cur=document.getElementById('pin-cur').value;
+  const nw=document.getElementById('pin-new').value;
+  const conf=document.getElementById('pin-conf').value;
+  const err=document.getElementById('pin-err');
+  if(cur!==S.pin){err.textContent='Current PIN is incorrect.';err.style.display='block';return;}
+  if(!/^\d{4}$/.test(nw)){err.textContent='New PIN must be exactly 4 digits.';err.style.display='block';return;}
+  if(nw!==conf){err.textContent='PINs do not match.';err.style.display='block';return;}
+  err.style.display='none';S.pin=nw;save();
+  document.getElementById('pin-cur').value='';document.getElementById('pin-new').value='';document.getElementById('pin-conf').value='';
+  showMsg('pin-ok','PIN updated successfully.','ok');
+}
+function clearAllData(){
+  if(!confirm('This will permanently delete ALL invoices, customers, products, and settings. Are you sure?'))return;
+  localStorage.removeItem('jgm_v3');
+  S=JSON.parse(JSON.stringify(DEF));
+  alert('All data cleared. The page will reload.');
+  location.reload();
+}
+
+function showMsg(id,msg,type){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.style.color=type==='ok'?'#27500A':'#A32D2D';el.style.display='block';
+  setTimeout(()=>el.style.display='none',3500);
+}
+function showEl(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';}
+</script>
+</body>
+</html>
